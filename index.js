@@ -9,18 +9,16 @@ const queryString = require('query-string');
 const BOT_TOKEN = process.env.BOT_TOKEN;
 const bot = new Telegraf(BOT_TOKEN);
 const baseServer = process.env.BASE_SERVER;
+const PORT = parseInt(process.env.PORT) || 80;
+const URL = process.env.URL || 'https://buscheckertelegrambot.herokuapp.com/';
 console.log(process.env.PORT);
 // Set up web-hooks to receive update from telegram
 if (process.env.NODE_ENV === 'production') {
   console.log('im in production');
-  const PORT = process.env.PORT || 80;
-  const URL = process.env.URL || 'https://buscheckertelegrambot.herokuapp.com/';
-  console.log(process.env.URL);
-  console.log(process.env.PORT);
 
   bot.telegram.setWebhook(`${URL}/bot${BOT_TOKEN}`);
   console.log('start');
-  bot.startWebhook(`/bot${BOT_TOKEN}`, null, 80);
+  bot.startWebhook(`/bot${BOT_TOKEN}`, null, PORT);
 }
 
 // Create Cache which store userID as key and last mentioned bus stop as value
