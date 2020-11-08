@@ -86,7 +86,7 @@ bot.hears(reBusStopCommand, async (ctx) => {
       'Ok what bus'
     );
 
-    BusStopCache.set(ctx.message.from.id, code, 5000);
+    BusStopCache.set(ctx.message.from.id, code, 60);
 
     let busArrivalResults = await fetch(busArrivalByStop(code));
     busArrivalResults = await busArrivalResults.json();
@@ -140,7 +140,7 @@ bot.hears(reBus, async (ctx) => {
 
   if (!stopCode) {
     ctx.reply(`ok ${busNo}`);
-    success = BusNoCache.set(ctx.message.from.id, busNo, 5000);
+    success = BusNoCache.set(ctx.message.from.id, busNo, 60);
     console.log(BusNoCache.keys());
     console.log(BusNoCache.get(ctx.message.from.id));
 
