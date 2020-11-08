@@ -16,8 +16,8 @@ if (process.env.NODE_ENV === 'production') {
   const PORT = process.env.PORT || 3130;
   const URL = process.env.URL || 'https://buscheckertelegrambot.herokuapp.com';
 
-  bot.telegram.setWebhook(`${URL}/bot${BOT_TOKEN}`);
-  bot.startWebhook(`/bot${BOT_TOKEN}`, null, PORT);
+  bot.telegram.setWebhook(`${URL}`);
+  bot.startWebhook(`/`, null, PORT);
 }
 
 // Create Cache which store userID as key and last mentioned bus stop as value
@@ -58,7 +58,7 @@ bot.use(Telegraf.log());
 
 bot.start((ctx) =>
   ctx.reply(
-    'Welcome to Bus Checker for Singapore Buses\nYou may start by sending either\nTell me the following:\n- Your bus number  ie: 10 \n-Your bus stop code ie: 10339 \n-Your location in text  ie: Toa Payoh'
+    'Welcome to Bus Checker for Singapore Buses\nYou may start by sending either\nTell me the following:\n- Your bus number  ie: 10 \n-Your bus stop code ie: /10339 \n-Your location in text  ie: Toa Payoh'
   )
 );
 
