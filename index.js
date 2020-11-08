@@ -15,9 +15,12 @@ if (process.env.NODE_ENV === 'production') {
   console.log('im in production');
   const PORT = process.env.PORT || 80;
   const URL = process.env.URL || 'https://buscheckertelegrambot.herokuapp.com/';
+  console.log(process.env.URL);
+  console.log(process.env.PORT);
 
   bot.telegram.setWebhook(`${URL}/bot${BOT_TOKEN}`);
-  bot.startWebhook(`/bot${BOT_TOKEN}`, null, PORT);
+  console.log('start');
+  bot.startWebhook(`/bot${BOT_TOKEN}`, null, 80);
 }
 
 // Create Cache which store userID as key and last mentioned bus stop as value
