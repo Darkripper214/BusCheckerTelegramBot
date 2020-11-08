@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
   },
   "author": "",
   "license": "ISC",
@@ -13,5 +14,8 @@
     "node-fetch": "^2.6.1",
     "query-string": "^6.13.7",
     "telegraf": "^3.38.0"
+  },
+  "engines": {
+    "node": "10.x"
   }
 }
