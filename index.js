@@ -1,6 +1,6 @@
 const Telegraf = require('telegraf');
 
-const Extra = require('telegraf/Extra');
+const Extra = require('telegraf/extra');
 const Markup = require('telegraf/markup');
 const NodeCache = require('node-cache');
 const fetch = require('node-fetch');
