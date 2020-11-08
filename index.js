@@ -14,7 +14,7 @@ const baseServer = process.env.BASE_SERVER;
 if (process.env.NODE_ENV === 'production') {
   console.log('im in production');
   const PORT = process.env.PORT || 3130;
-  const URL = process.env.URL || 'https://your-heroku-app.herokuapp.com';
+  const URL = process.env.URL || 'https://buscheckertelegrambot.herokuapp.com';
 
   bot.telegram.setWebhook(`${URL}/bot${BOT_TOKEN}`);
   bot.startWebhook(`/bot${BOT_TOKEN}`, null, PORT);
