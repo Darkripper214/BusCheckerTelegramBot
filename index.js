@@ -65,67 +65,71 @@ bot.start((ctx) =>
 bot.hears(reBusStopCommand, async (ctx) => {
   const code = ctx.message.text.substring(1);
   // Check Bus Stop and get location
-  let busStopResult = await fetch(busStopByCode(code));
-  let busNo = BusNoCache.take(ctx.message.from.id);
-  let reply = '';
-  busStopResult = await busStopResult.json();
+  try {
+    let busStopResult = await fetch(busStopByCode(code));
+    let busNo = BusNoCache.take(ctx.message.from.id);
+    let reply = '';
+    busStopResult = await busStopResult.json();
 
-  if (isEmptyResult(busStopResult)) {
-    ctx.reply('No Such Bus Stop');
-    return;
-  }
-
-  //Send Location with text
-  bot.telegram.sendVenue(
-    ctx.chat.id,
-    busStopResult.Latitude,
-    busStopResult.Longitude,
-    `${code} - ${busStopResult.Description}`,
-    'Ok what bus'
-  );
-
-  BusStopCache.set(ctx.message.from.id, code, 5000);
-
-  let busArrivalResults = await fetch(busArrivalByStop(code));
-  busArrivalResults = await busArrivalResults.json();
-
-  if (isEmptyResult(busArrivalResults)) {
-    ctx.reply('No Bus Service Liao');
-    return;
-  }
-
-  payload = busArrivalResults.Services.map((service) => {
-    if (service.ServiceNo === busNo) {
-      reply = service.NextBus.EstimatedArrivalTime;
+    if (isEmptyResult(busStopResult)) {
+      ctx.reply('No Such Bus Stop');
+      return;
     }
-    return {
-      ServiceNo: service.ServiceNo,
-      EstimatedArrivalTime: service.NextBus.EstimatedArrivalTime,
-    };
-  });
 
-  // Check memory if user have mentioned bus service previously
-  if (busNo) {
-    if (!reply) {
-      ctx.reply(`This Station ${code} dont have Bus ${busNo} leh`);
-    } else {
-      ctx.reply(`Bus ${busNo} Will Arrive ${reply}`);
+    //Send Location with text
+    bot.telegram.sendVenue(
+      ctx.chat.id,
+      busStopResult.Latitude,
+      busStopResult.Longitude,
+      `${code} - ${busStopResult.Description}`,
+      'Ok what bus'
+    );
+
+    BusStopCache.set(ctx.message.from.id, code, 5000);
+
+    let busArrivalResults = await fetch(busArrivalByStop(code));
+    busArrivalResults = await busArrivalResults.json();
+
+    if (isEmptyResult(busArrivalResults)) {
+      ctx.reply('No Bus Service Liao');
+      return;
     }
+
+    payload = busArrivalResults.Services.map((service) => {
+      if (service.ServiceNo === busNo) {
+        reply = service.NextBus.EstimatedArrivalTime;
+      }
+      return {
+        ServiceNo: service.ServiceNo,
+        EstimatedArrivalTime: service.NextBus.EstimatedArrivalTime,
+      };
+    });
+
+    // Check memory if user have mentioned bus service previously
+    if (busNo) {
+      if (!reply) {
+        ctx.reply(`This Station ${code} dont have Bus ${busNo} leh`);
+      } else {
+        ctx.reply(`Bus ${busNo} Will Arrive ${reply}`);
+      }
+    }
+
+    let button = payload.map((service) => {
+      return `${service.ServiceNo}`;
+    });
+
+    ctx.reply(
+      `Available Bus Service No.`,
+      Markup.keyboard(button, {
+        columns: 3,
+      })
+        .oneTime()
+        .resize()
+        .extra()
+    );
+  } catch (err) {
+    console.log(err);
   }
-
-  let button = payload.map((service) => {
-    return `${service.ServiceNo}`;
-  });
-
-  ctx.reply(
-    `Available Bus Service No.`,
-    Markup.keyboard(button, {
-      columns: 3,
-    })
-      .oneTime()
-      .resize()
-      .extra()
-  );
 });
 
 bot.hears(reBus, async (ctx) => {
@@ -153,42 +157,45 @@ bot.hears(reBus, async (ctx) => {
     );
     return;
   }
+  try {
+    let busArrivalResults = await fetch(busArrivalByStop(stopCode));
+    busArrivalResults = await busArrivalResults.json();
 
-  let busArrivalResults = await fetch(busArrivalByStop(stopCode));
-  busArrivalResults = await busArrivalResults.json();
-
-  if (isEmptyResult(busArrivalResults)) {
-    ctx.reply('No Bus Service Liao');
-    return;
-  }
-
-  busArrivalResults.Services.forEach((service) => {
-    if (service.ServiceNo === busNo) {
-      reply = service.NextBus.EstimatedArrivalTime;
+    if (isEmptyResult(busArrivalResults)) {
+      ctx.reply('No Bus Service Liao');
+      return;
     }
-  });
 
-  if (!reply) {
-    ctx.reply(`This Station ${stopCode} dont have Bus ${busNo} leh`);
+    busArrivalResults.Services.forEach((service) => {
+      if (service.ServiceNo === busNo) {
+        reply = service.NextBus.EstimatedArrivalTime;
+      }
+    });
 
-    ctx.reply(
-      `Where are you now?`,
-      Markup.keyboard(
-        [[Markup.locationRequestButton('Send location')], ['Search By Text']],
-        {
-          columns: 2,
-        }
-      )
-        .oneTime()
-        .resize()
-        .extra()
-    );
+    if (!reply) {
+      ctx.reply(`This Station ${stopCode} dont have Bus ${busNo} leh`);
 
+      ctx.reply(
+        `Where are you now?`,
+        Markup.keyboard(
+          [[Markup.locationRequestButton('Send location')], ['Search By Text']],
+          {
+            columns: 2,
+          }
+        )
+          .oneTime()
+          .resize()
+          .extra()
+      );
+
+      return;
+    }
+
+    ctx.reply(`Bus ${busNo} Will Arrive ${reply}`);
     return;
+  } catch (err) {
+    console.log(err);
   }
-
-  ctx.reply(`Bus ${busNo} Will Arrive ${reply}`);
-  return;
 });
 
 bot.hears('Search By Text', (ctx) => {
@@ -199,54 +206,60 @@ bot.hears('Search By Text', (ctx) => {
 bot.hears(reLocation, async (ctx) => {
   const location = ctx.message.text;
   // Check Bus Stop and get location
-  let busStopResult = await fetch(busStopByLocation(location));
-  busStopResult = await busStopResult.json();
+  try {
+    let busStopResult = await fetch(busStopByLocation(location));
+    busStopResult = await busStopResult.json();
 
-  if (isEmptyResult(busStopResult)) {
-    ctx.reply('No Such Bus Stop');
+    if (isEmptyResult(busStopResult)) {
+      ctx.reply('No Such Bus Stop');
+      return;
+    }
+
+    let replyText = '';
+
+    busStopResult.forEach((busStop) => {
+      replyText += `${busStop.Description} \n${busStop.RoadName} /${busStop.BusStopCode} \n\n`;
+    });
+
+    ctx.reply('Which of these stops?');
+    ctx.reply(replyText);
     return;
+  } catch (err) {
+    console.log(err);
   }
-
-  let replyText = '';
-
-  busStopResult.forEach((busStop) => {
-    replyText += `${busStop.Description} \n${busStop.RoadName} /${busStop.BusStopCode} \n\n`;
-  });
-
-  ctx.reply('Which of these stops?');
-  ctx.reply(replyText);
-  return;
 });
 
 bot.on('location', async (ctx) => {
   let latitude = parseFloat(ctx.message.location.latitude);
   let longitude = parseFloat(ctx.message.location.longitude);
+  try {
+    results = await fetch(
+      queryString.stringifyUrl({
+        url: busArrivalByCoordinate(''),
+        query: {
+          latitude,
+          longitude,
+        },
+      })
+    );
+    results = await results.json();
 
-  results = await fetch(
-    queryString.stringifyUrl({
-      url: busArrivalByCoordinate(''),
-      query: {
-        latitude,
-        longitude,
-      },
-    })
-  );
-  results = await results.json();
+    if (isEmptyResult(results)) {
+      ctx.reply('No Bus Stop within 200m of your location');
+      return;
+    }
 
-  if (isEmptyResult(results)) {
-    ctx.reply('No Bus Stop within 200m of your location');
-    return;
+    let replyText = '';
+
+    results.forEach((busStop) => {
+      replyText += `${busStop.Description} \n${busStop.RoadName} /${busStop.BusStopCode} \n\n`;
+    });
+
+    ctx.reply('Which of these stops?');
+    ctx.reply(replyText);
+  } catch (err) {
+    console.log(err);
   }
-
-  let replyText = '';
-
-  results.forEach((busStop) => {
-    replyText += `${busStop.Description} \n${busStop.RoadName} /${busStop.BusStopCode} \n\n`;
-  });
-
-  ctx.reply('Which of these stops?');
-  ctx.reply(replyText);
-  return;
 });
 
 bot.launch();
