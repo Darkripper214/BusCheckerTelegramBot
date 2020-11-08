@@ -11,15 +11,15 @@ const bot = new Telegraf(BOT_TOKEN);
 const baseServer = process.env.BASE_SERVER;
 const PORT = parseInt(process.env.PORT) || 80;
 const URL = process.env.URL || 'https://buscheckertelegrambot.herokuapp.com/';
-console.log(process.env.PORT);
+
 // Set up web-hooks to receive update from telegram
-if (process.env.NODE_ENV === 'production') {
+/* if (process.env.NODE_ENV === 'production') {
   console.log('im in production');
 
   bot.telegram.setWebhook(`${URL}/bot${BOT_TOKEN}`);
   console.log('start');
   bot.startWebhook(`/bot${BOT_TOKEN}`, null, PORT);
-}
+} */
 
 // Create Cache which store userID as key and last mentioned bus stop as value
 const BusStopCache = new NodeCache();
@@ -263,4 +263,16 @@ bot.on('location', async (ctx) => {
   }
 });
 
-bot.launch();
+if (process.env.NODE_ENV === 'production') {
+  bot
+    .launch({
+      webhook: {
+        domain: URL,
+        path: `/bot${BOT_TOKEN}`,
+        port: PORT,
+      },
+    })
+    .then(() => console.log(`Running`));
+} else {
+  bot.launch().then(() => console.log(`Running`));
+}
