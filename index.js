@@ -57,11 +57,23 @@ let reLocation = /[a-zA-Z]{3,}\d*/;
 
 bot.use(Telegraf.log());
 
-bot.start((ctx) =>
+bot.start((ctx) => {
   ctx.reply(
     'Welcome to Bus Checker for Singapore Buses\nYou may start by sending either\nTell me the following:\n- Your bus number  ie: 10 \n-Your bus stop code ie: /10339 \n-Your location in text  ie: Toa Payoh'
-  )
-);
+  );
+  ctx.reply(
+    `Where are you now?`,
+    Markup.keyboard(
+      [[Markup.locationRequestButton('Send location')], ['Search By Text']],
+      {
+        columns: 2,
+      }
+    )
+      .oneTime()
+      .resize()
+      .extra()
+  );
+});
 
 bot.hears(reBusStopCommand, async (ctx) => {
   const code = ctx.message.text.substring(1);
